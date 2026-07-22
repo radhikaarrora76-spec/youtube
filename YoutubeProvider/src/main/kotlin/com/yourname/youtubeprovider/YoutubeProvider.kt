@@ -9,13 +9,9 @@ import com.lagradost.cloudstream3.utils.newExtractorLink
 /**
  * A Cloudstream provider that lets you search YouTube and stream videos.
  *
- * It goes through a public Invidious instance's JSON API rather than scraping
+ * It goes through public Invidious instances' JSON API rather than scraping
  * youtube.com directly, since Invidious already does the signature-cipher
  * decoding for us and exposes plain, direct googlevideo.com stream URLs.
- *
- * NOTE: Invidious instances are volunteer-run and go up/down often. If videos
- * stop loading, swap `invidiousInstance` below for another instance from
- * https://api.invidious.io/ (a list of currently healthy instances).
  */
 class YoutubeProvider : MainAPI() {
     override var mainUrl = "https://www.youtube.com"
@@ -25,8 +21,17 @@ class YoutubeProvider : MainAPI() {
     override val supportedTypes = setOf(TvType.Others)
     override val hasDownloadSupport = false
 
-    // Change this to any instance from https://api.invidious.io/ if this one goes down
-    private var invidiousInstance = "https://yewtu.be"
+    // Public Invidious instances to try, in order. Many sit behind anti-bot
+    // protection that silently returns an HTML challenge page instead of JSON,
+    // so we try a few candidates rather than hardcoding one that might be
+    // blocking us today. Swap/reorder from https://api.invidious.io/ as needed.
+    private val invidiousInstances = listOf(
+        "https://invidious.nerdvpn.de",
+        "https://yt.artemislena.eu",
+        "https://invidious.tiekoetter.com",
+        "https://vid.puffyan.us",
+        "https://yewtu.be"
+    )
 
     // Many Invidious instances silently reject/rate-limit requests that don't
     // look like they're coming from a real browser.
@@ -34,19 +39,30 @@ class YoutubeProvider : MainAPI() {
         "User-Agent" to "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
     )
 
+    // Tries each Invidious instance in order for a given API path, returning
+    // the first one that successfully parses as T. Returns null if all fail.
+    private suspend inline fun <reified T> tryInstances(path: String): T? {
+        for (instance in invidiousInstances) {
+            val result = app.get("$instance$path", headers = headers).parsedSafe<T>()
+            if (result != null) return result
+        }
+        return null
+    }
+
     // ---------- Home page ----------
     // Invidious' "trending" endpoint doubles as a simple home page feed.
+    // Paths only (no host) since we try multiple instances per request.
     override val mainPage = mainPageOf(
-        "$invidiousInstance/api/v1/trending?type=all" to "Trending",
-        "$invidiousInstance/api/v1/trending?type=music" to "Music",
-        "$invidiousInstance/api/v1/trending?type=gaming" to "Gaming",
+        "/api/v1/trending?type=all" to "Trending",
+        "/api/v1/trending?type=music" to "Music",
+        "/api/v1/trending?type=gaming" to "Gaming",
     )
 
     override suspend fun getMainPage(
         page: Int,
         request: MainPageRequest
     ): HomePageResponse {
-        val videos = app.get(request.data, headers = headers).parsedSafe<List<InvidiousVideo>>() ?: emptyList()
+        val videos = tryInstances<List<InvidiousVideo>>(request.data) ?: emptyList()
         val items = videos.mapNotNull { it.toSearchResponse(this) }
         return newHomePageResponse(request.name, items, hasNext = false)
     }
@@ -54,8 +70,8 @@ class YoutubeProvider : MainAPI() {
     // ---------- Search ----------
     override suspend fun search(query: String): List<SearchResponse> {
         val encodedQuery = java.net.URLEncoder.encode(query, "UTF-8")
-        val url = "$invidiousInstance/api/v1/search?q=$encodedQuery&type=video"
-        val results = app.get(url, headers = headers).parsedSafe<List<InvidiousVideo>>() ?: return emptyList()
+        val results = tryInstances<List<InvidiousVideo>>("/api/v1/search?q=$encodedQuery&type=video")
+            ?: return emptyList()
         return results.mapNotNull { it.toSearchResponse(this) }
     }
 
@@ -63,8 +79,8 @@ class YoutubeProvider : MainAPI() {
     override suspend fun load(url: String): LoadResponse {
         // url is expected to be the videoId, e.g. "dQw4w9WgXcQ"
         val videoId = url.substringAfterLast("/")
-        val info = app.get("$invidiousInstance/api/v1/videos/$videoId", headers = headers)
-            .parsed<InvidiousVideoDetail>()
+        val info = tryInstances<InvidiousVideoDetail>("/api/v1/videos/$videoId")
+            ?: throw Exception("Could not reach any Invidious instance")
 
         return newMovieLoadResponse(
             name = info.title ?: "Unknown",
@@ -86,8 +102,7 @@ class YoutubeProvider : MainAPI() {
         callback: (ExtractorLink) -> Unit
     ): Boolean {
         val videoId = data
-        val info = app.get("$invidiousInstance/api/v1/videos/$videoId", headers = headers)
-            .parsed<InvidiousVideoDetail>()
+        val info = tryInstances<InvidiousVideoDetail>("/api/v1/videos/$videoId") ?: return false
 
         var found = false
 
