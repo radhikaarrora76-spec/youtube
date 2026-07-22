@@ -44,7 +44,7 @@ subprojects {
 
     extensions.configure<BaseExtension> {
         namespace = "com.yourname.${project.name.lowercase()}"
-        compileSdkVersion(35)
+        compileSdkVersion(34)
 
         defaultConfig {
             minSdk = 21
