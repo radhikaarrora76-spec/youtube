@@ -1,6 +1,8 @@
 package com.yourname.youtubeprovider
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.utils.*
 import com.lagradost.cloudstream3.utils.ExtractorLink
@@ -13,6 +15,8 @@ class YoutubeProvider : MainAPI() {
     override var lang = "en"
     override val supportedTypes = setOf(TvType.Others)
     override val hasDownloadSupport = false
+
+    private val mapper = jacksonObjectMapper()
 
     private val invidiousInstances = listOf(
         "https://invidious.nerdvpn.de",
@@ -53,7 +57,11 @@ class YoutubeProvider : MainAPI() {
     ): HomePageResponse {
         val json = fetchFromInstances(request.data)
             ?: return newHomePageResponse(request.name, emptyList(), hasNext = false)
-        val videos = tryParseJson<List<InvidiousVideo>>(json) ?: emptyList()
+        val videos = try {
+            mapper.readValue<List<InvidiousVideo>>(json)
+        } catch (e: Exception) {
+            emptyList()
+        }
         val items = videos.mapNotNull { it.toSearchResponse(this) }
         return newHomePageResponse(request.name, items, hasNext = false)
     }
@@ -62,7 +70,11 @@ class YoutubeProvider : MainAPI() {
         val encodedQuery = java.net.URLEncoder.encode(query, "UTF-8")
         val json = fetchFromInstances("/api/v1/search?q=$encodedQuery&type=video")
             ?: return emptyList()
-        val results = tryParseJson<List<InvidiousVideo>>(json) ?: return emptyList()
+        val results = try {
+            mapper.readValue<List<InvidiousVideo>>(json)
+        } catch (e: Exception) {
+            emptyList()
+        }
         return results.mapNotNull { it.toSearchResponse(this) }
     }
 
@@ -70,8 +82,11 @@ class YoutubeProvider : MainAPI() {
         val videoId = url.substringAfterLast("/")
         val json = fetchFromInstances("/api/v1/videos/$videoId")
             ?: throw Exception("Could not reach any Invidious instance")
-        val info = tryParseJson<InvidiousVideoDetail>(json)
-            ?: throw Exception("Could not parse video info")
+        val info = try {
+            mapper.readValue<InvidiousVideoDetail>(json)
+        } catch (e: Exception) {
+            throw Exception("Could not parse video info")
+        }
 
         return newMovieLoadResponse(
             name = info.title ?: "Unknown",
@@ -92,7 +107,11 @@ class YoutubeProvider : MainAPI() {
         callback: (ExtractorLink) -> Unit
     ): Boolean {
         val json = fetchFromInstances("/api/v1/videos/$data") ?: return false
-        val info = tryParseJson<InvidiousVideoDetail>(json) ?: return false
+        val info = try {
+            mapper.readValue<InvidiousVideoDetail>(json)
+        } catch (e: Exception) {
+            return false
+        }
 
         var found = false
 
@@ -110,7 +129,8 @@ class YoutubeProvider : MainAPI() {
         }
 
         if (!found) {
-            info.adaptiveFormats?.filter { it.type?.startsWith("video") == true }
+            info.adaptiveFormats
+                ?.filter { it.type?.startsWith("video") == true }
                 ?.forEach { stream ->
                     val streamUrl = stream.url ?: return@forEach
                     callback(
@@ -128,6 +148,8 @@ class YoutubeProvider : MainAPI() {
         return found
     }
 }
+
+// ---------- Invidious JSON models ----------
 
 data class InvidiousThumbnail(
     @JsonProperty("url") val url: String? = null
