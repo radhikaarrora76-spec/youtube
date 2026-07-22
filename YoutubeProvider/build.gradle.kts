@@ -1,4 +1,4 @@
-version = 5
+version = 3
 
 cloudstream {
     language = "en"
@@ -19,6 +19,5 @@ dependencies {
     val implementation by configurations
     implementation("com.github.Blatzar:NiceHttp:0.4.11")
     implementation("com.fasterxml.jackson.core:jackson-annotations:2.15.2")
-    // ✅ Added - needed for ObjectMapper
-    implementation("com.fasterxml.jackson.core:jackson-databind:2.15.2")
+    // ❌ REMOVED jackson-databind - CloudStream provides its own via parseJson
 }
