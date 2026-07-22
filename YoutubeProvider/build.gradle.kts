@@ -5,6 +5,7 @@ version = 1
 cloudstream {
     // All of these properties are optional, remove ones you don't need
 
+    language = "en"
     description = "Watch and stream YouTube videos inside Cloudstream"
     authors = listOf("YourName")
 
