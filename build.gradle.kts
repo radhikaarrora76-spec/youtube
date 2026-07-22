@@ -41,6 +41,12 @@ subprojects {
         }
     }
 
+    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+        kotlinOptions {
+            jvmTarget = "17"
+        }
+    }
+
     dependencies {
         val implementation by configurations
         val cloudstream by configurations
