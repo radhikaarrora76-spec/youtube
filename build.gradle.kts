@@ -1,4 +1,5 @@
 import com.android.build.gradle.BaseExtension
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 buildscript {
     repositories {
@@ -8,9 +9,10 @@ buildscript {
     }
     dependencies {
         classpath("com.android.tools.build:gradle:8.4.0")
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.24")
-        // The Cloudstream Gradle plugin - handles .cs3 packaging + repo.json generation
-        classpath("com.github.recloudstream:gradle:master-SNAPSHOT")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:2.3.0")
+        // The Cloudstream Gradle plugin - handles .cs3 packaging + repo.json generation.
+        // Pinned to a commit hash because "master-SNAPSHOT" no longer resolves on JitPack.
+        classpath("com.github.recloudstream:gradle:81b1d424d2")
     }
 }
 
@@ -36,14 +38,14 @@ subprojects {
         }
 
         compileOptions {
-            sourceCompatibility = JavaVersion.VERSION_17
-            targetCompatibility = JavaVersion.VERSION_17
+            sourceCompatibility = JavaVersion.VERSION_1_8
+            targetCompatibility = JavaVersion.VERSION_1_8
         }
     }
 
-    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+    tasks.withType<KotlinCompile>().configureEach {
         kotlinOptions {
-            jvmTarget = "17"
+            jvmTarget = "1.8"
         }
     }
 
@@ -51,7 +53,7 @@ subprojects {
         val implementation by configurations
         val cloudstream by configurations
         cloudstream("com.lagradost:cloudstream3:pre-release")
-        implementation("org.jetbrains.kotlin:kotlin-stdlib:1.9.24")
+        implementation("org.jetbrains.kotlin:kotlin-stdlib:2.3.0")
     }
 }
 
