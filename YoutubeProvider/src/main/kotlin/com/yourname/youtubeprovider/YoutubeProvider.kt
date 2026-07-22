@@ -28,6 +28,12 @@ class YoutubeProvider : MainAPI() {
     // Change this to any instance from https://api.invidious.io/ if this one goes down
     private var invidiousInstance = "https://yewtu.be"
 
+    // Many Invidious instances silently reject/rate-limit requests that don't
+    // look like they're coming from a real browser.
+    private val headers = mapOf(
+        "User-Agent" to "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+    )
+
     // ---------- Home page ----------
     // Invidious' "trending" endpoint doubles as a simple home page feed.
     override val mainPage = mainPageOf(
@@ -40,15 +46,16 @@ class YoutubeProvider : MainAPI() {
         page: Int,
         request: MainPageRequest
     ): HomePageResponse {
-        val videos = app.get(request.data).parsedSafe<List<InvidiousVideo>>() ?: emptyList()
+        val videos = app.get(request.data, headers = headers).parsedSafe<List<InvidiousVideo>>() ?: emptyList()
         val items = videos.mapNotNull { it.toSearchResponse(this) }
         return newHomePageResponse(request.name, items, hasNext = false)
     }
 
     // ---------- Search ----------
     override suspend fun search(query: String): List<SearchResponse> {
-        val url = "$invidiousInstance/api/v1/search?q=${query}&type=video"
-        val results = app.get(url).parsedSafe<List<InvidiousVideo>>() ?: return emptyList()
+        val encodedQuery = java.net.URLEncoder.encode(query, "UTF-8")
+        val url = "$invidiousInstance/api/v1/search?q=$encodedQuery&type=video"
+        val results = app.get(url, headers = headers).parsedSafe<List<InvidiousVideo>>() ?: return emptyList()
         return results.mapNotNull { it.toSearchResponse(this) }
     }
 
@@ -56,7 +63,7 @@ class YoutubeProvider : MainAPI() {
     override suspend fun load(url: String): LoadResponse {
         // url is expected to be the videoId, e.g. "dQw4w9WgXcQ"
         val videoId = url.substringAfterLast("/")
-        val info = app.get("$invidiousInstance/api/v1/videos/$videoId")
+        val info = app.get("$invidiousInstance/api/v1/videos/$videoId", headers = headers)
             .parsed<InvidiousVideoDetail>()
 
         return newMovieLoadResponse(
@@ -79,7 +86,7 @@ class YoutubeProvider : MainAPI() {
         callback: (ExtractorLink) -> Unit
     ): Boolean {
         val videoId = data
-        val info = app.get("$invidiousInstance/api/v1/videos/$videoId")
+        val info = app.get("$invidiousInstance/api/v1/videos/$videoId", headers = headers)
             .parsed<InvidiousVideoDetail>()
 
         var found = false
