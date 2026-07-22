@@ -23,6 +23,10 @@ jobs:
       - name: Build plugins
         run: ./gradlew make makePluginsJson
 
+      # TEMPORARY DEBUG STEP - shows exactly where files land, remove once confirmed
+      - name: Show build output structure
+        run: find . -name "*.cs3" -o -name "plugins.json" | grep -v node_modules
+
       # Publishes just the build/ folder (the .cs3 files + repo.json) to a
       # "builds" branch. Cloudstream is pointed at that branch's raw repo.json.
       - name: Deploy to builds branch
