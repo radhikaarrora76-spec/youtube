@@ -26,10 +26,10 @@ class YoutubeProvider : MainAPI() {
     // so we try a few candidates rather than hardcoding one that might be
     // blocking us today. Swap/reorder from https://api.invidious.io/ as needed.
     private val invidiousInstances = listOf(
+        "https://inv.zoomerville.com",
         "https://invidious.nerdvpn.de",
-        "https://yt.artemislena.eu",
         "https://invidious.tiekoetter.com",
-        "https://vid.puffyan.us",
+        "https://inv.nadeko.net",
         "https://yewtu.be"
     )
 
