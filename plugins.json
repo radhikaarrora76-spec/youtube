@@ -1,7 +1,7 @@
 [
     {
         "iconUrl": "https://www.google.com/s2/favicons?domain=youtube.com&sz=%size%",
-        "fileHash": "sha256-40a518b998ff42a1b22a9de271cfa82267a781f5ff13220c55123ce37432ad15",
+        "fileHash": "sha256-05518f115ad4a8e2a3e55a5fa7fabe072df5cc1fd83b0000e951878e09086f3a",
         "apiVersion": 1,
         "repositoryUrl": "https://github.com/radhikaarrora76-spec/youtube",
         "fileSize": 15705,
@@ -13,7 +13,7 @@
         "tvTypes": [
             "Others"
         ],
-        "version": 4,
+        "version": 5,
         "internalName": "YoutubeProvider",
         "description": "Watch and stream YouTube videos inside Cloudstream",
         "url": "https://raw.githubusercontent.com/radhikaarrora76-spec/youtube/builds/YoutubeProvider.cs3",
