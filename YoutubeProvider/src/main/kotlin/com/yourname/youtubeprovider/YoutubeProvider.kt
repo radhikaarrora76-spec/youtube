@@ -41,10 +41,14 @@ class YoutubeProvider : MainAPI() {
 
     // Tries each Invidious instance in order for a given API path, returning
     // the first one that successfully parses as T. Returns null if all fail.
-    private suspend inline fun <reified T> tryInstances(path: String): T? {
+    private suspend inline fun <reified T : Any> tryInstances(path: String): T? {
         for (instance in invidiousInstances) {
-            val result = app.get("$instance$path", headers = headers).parsedSafe<T>()
-            if (result != null) return result
+            try {
+                val result = app.get("$instance$path", headers = headers).parsedSafe<T>()
+                if (result != null) return result
+            } catch (e: Exception) {
+                continue
+            }
         }
         return null
     }
