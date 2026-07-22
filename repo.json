@@ -1,0 +1,8 @@
+{
+    "name": "My YouTube Repo",
+    "description": "A Cloudstream repository with a YouTube provider",
+    "manifestVersion": 1,
+    "pluginLists": [
+        "https://raw.githubusercontent.com/radhikaarrora76-spec/youtube/builds/plugins.json"
+    ]
+}
