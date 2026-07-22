@@ -1,6 +1,6 @@
 // Every time you push, this version auto-increments in the builds branch,
 // but bump it yourself if you want a clean manual release.
-version = 1
+version = 3
 
 cloudstream {
     // All of these properties are optional, remove ones you don't need
