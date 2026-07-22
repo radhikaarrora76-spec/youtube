@@ -30,5 +30,8 @@ android {
 
 dependencies {
     val implementation by configurations
-    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    // NiceHttp - provides the `app` object and `app.get(...)` used in the provider
+    implementation("com.github.Blatzar:NiceHttp:0.4.11")
+    // Needed for @JsonProperty on the data classes used to parse Invidious' JSON responses
+    implementation("com.fasterxml.jackson.core:jackson-annotations:2.15.2")
 }
