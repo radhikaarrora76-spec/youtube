@@ -18,7 +18,7 @@ class YoutubeProvider : MainAPI() {
     override var name = "YouTube"
     override val hasMainPage = true
     override var lang = "en"
-    override val supportedTypes = setOf(TvType.Others)
+    override val supportedTypes = setOf(TvType.Movie)
     override val hasDownloadSupport = false
 
     // Public Invidious instances to try, in order. Many sit behind anti-bot
@@ -85,7 +85,7 @@ class YoutubeProvider : MainAPI() {
         return newMovieLoadResponse(
             name = info.title ?: "Unknown",
             url = videoId,
-            type = TvType.Others,
+            type = TvType.Movie,
             dataUrl = videoId
         ) {
             this.posterUrl = info.videoThumbnails?.firstOrNull()?.url
@@ -157,7 +157,7 @@ data class InvidiousVideo(
         return provider.newMovieSearchResponse(
             name = title ?: "Untitled",
             url = id,
-            type = TvType.Others
+            type = TvType.Movie
         ) {
             this.posterUrl = videoThumbnails?.firstOrNull()?.url
         }
