@@ -1,9 +1,9 @@
 [
     {
         "iconUrl": "https://www.google.com/s2/favicons?domain=youtube.com&sz=%size%",
-        "fileHash": "sha256-0ed47ffdb8681834f611ef553079eb3be2c81d210b1a76550c0c0679eeaf5dab",
+        "fileHash": "sha256-bf42ca319fd94a5c953a944c1017a9eb4b863749dc893c625b722442ec42d51e",
         "apiVersion": 1,
-        "fileSize": 14479,
+        "fileSize": 14481,
         "status": 1,
         "authors": [
             "YourName"
