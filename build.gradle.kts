@@ -1,4 +1,5 @@
 import com.android.build.gradle.BaseExtension
+import com.lagradost.cloudstream3.gradle.CloudstreamExtension
 import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
@@ -25,10 +26,21 @@ allprojects {
     }
 }
 
+// Helper so we can write `cloudstream { ... }` inside subprojects below
+fun Project.cloudstream(configuration: CloudstreamExtension.() -> Unit) =
+    extensions.getByName<CloudstreamExtension>("cloudstream").configuration()
+
 subprojects {
     apply(plugin = "com.android.library")
     apply(plugin = "kotlin-android")
     apply(plugin = "com.lagradost.cloudstream3.gradle")
+
+    cloudstream {
+        // This tells the plugin which GitHub repo (owner/repo) it's building for,
+        // which it needs to construct the .cs3 download URL in plugins.json.
+        // GITHUB_REPOSITORY is set automatically by GitHub Actions.
+        setRepo(System.getenv("GITHUB_REPOSITORY") ?: "radhikaarrora76-spec/youtube")
+    }
 
     extensions.configure<BaseExtension> {
         namespace = "com.yourname.${project.name.lowercase()}"
